@@ -1,0 +1,53 @@
+{
+  "name": "VIDIGALBERGUE",
+  "slug": "vidigalbergue.com.br",
+  "description": "Meu nome é Ana Paula, tenho 29 anos, carioca e cidadã do mundo. Eu amo viajar e por isso desde que eu conquistei a minha independência financeira eu iniciei uma jornada linda e desafiante na minha vida: Viajar o mundo sozinha. O que mais me fascina neste universo é a culinária de cada lugar, a moda os costumes e tudo que envolve as culturas diversas que temos dentro do Brasil e no mundo. O nome do blog é VidigalBergue pois este foi o meu primeiro empreendimento e foi através dele que conquistei a minha independência financeira e a minha paixão por conhecer pessoas de todo o mundo.No Rio de Janeiro, cidade que eu amo de paixão, eu inaugurei um hostel, o VidigalBergue. Foram 5 anos de muito amor, aprendizado e novas amizades. Hoje eu viajo o mundo e escrevo tudo neste blog para inspirar novas pessoas a viajarem e aproveitarem mais a vida. Aqui você encontra dicas sobre: Empreendedorismo, viagens, moda e life style. <3",
+  "url": "https://vidigalbergue.com.br",
+  "niche": "Viagens e Turismo",
+  "keywords": "Meu nome e Ana Paula tenho 29 anos carioca e cidada do",
+  "email": "contato@vidigalbergue.com.br",
+  "palette": "forest",
+  "colors": {
+    "primary": "#16a34a",
+    "accent": "#14532d",
+    "dark": "#052e16"
+  },
+  "headerContrast": "light",
+  "font": "inter",
+  "fontFamily": "'Inter', sans-serif",
+  "fontUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+  "components": {
+    "header": "Header-H",
+    "hero": "Hero-E",
+    "features": "Features-A",
+    "about": "About-E",
+    "posts": "Posts-G",
+    "footer": "Footer-E",
+    "sobre": "Sobre-B",
+    "contato": "Contato-I"
+  },
+  "menu": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "Blog",
+      "href": "/blog"
+    },
+    {
+      "label": "Sobre",
+      "href": "/sobre"
+    },
+    {
+      "label": "Contato",
+      "href": "/contato"
+    }
+  ],
+  "social": {
+    "instagram": "",
+    "facebook": "",
+    "twitter": "",
+    "youtube": ""
+  }
+}

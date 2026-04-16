@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../sections/Header.astro';
+import Footer from '../../sections/Footer.astro';
+import { getAllPosts } from '../../lib/posts';
+
+function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+const { id } = Astro.params;
+const allPosts = await getAllPosts();
+const posts = allPosts.filter(p => toSlug(p.category) === id);
+const category = posts[0]?.category || id?.replace(/-/g, ' ') || 'Categoria';
+---
+
+<BaseLayout title={`Categoria: ${category}`} description={`Artigos sobre ${category}`}>
+  <Header />
+  
+  <main class="py-16 min-h-screen bg-slate-50">
+    <div class="max-w-5xl mx-auto px-4">
+      <header class="mb-12">
+        <h1 class="text-4xl font-black text-slate-800 mb-2">{category}</h1>
+        <p class="text-slate-500">Confira todos os artigos publicados em {category}</p>
+      </header>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        {posts.map(post => (
+          <a href={`/${post.slug}`} class="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+            <div class="aspect-video overflow-hidden">
+              <img src={post.heroImage} alt={post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            </div>
+            <div class="p-6">
+              <h2 class="font-bold text-slate-800 group-hover:text-primary transition-colors line-clamp-2 mb-2">{post.title}</h2>
+              <p class="text-slate-500 text-sm line-clamp-3">{post.description}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      
+      {posts.length === 0 && (
+        <div class="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+          <p class="text-slate-400">Nenhum artigo encontrado nesta categoria.</p>
+        </div>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

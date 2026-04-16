@@ -1,0 +1,9 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PostEditor from '../../../components/admin/PostEditor';
+
+const filePath = Astro.url.searchParams.get('file') || null;
+---
+<AdminLayout title="Editar Post" activeSection="posts">
+    <PostEditor client:load filePath={filePath} />
+</AdminLayout>

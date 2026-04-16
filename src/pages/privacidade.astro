@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import Footer from '../sections/Footer.astro';
+import siteConfig from '../data/siteConfig.json';
+const year = new Date().getFullYear();
+---
+<BaseLayout title="Política de Privacidade" description="Política de privacidade e proteção de dados.">
+  <Header />
+  <section class="py-16 bg-white min-h-screen">
+    <div class="max-w-3xl mx-auto px-4">
+      <h1 class="text-3xl font-black text-dark mb-8">Política de Privacidade</h1>
+      <div class="prose prose-gray max-w-none">
+        <p class="text-gray-500">Última atualização: {new Date().toLocaleDateString('pt-BR')}</p>
+
+        <h2>1. Informações que coletamos</h2>
+        <p>Coletamos informações que você nos fornece diretamente, como quando você preenche um formulário de contato ou se inscreve em nossa newsletter.</p>
+
+        <h2>2. Como usamos suas informações</h2>
+        <p>Utilizamos as informações coletadas para operar, manter e melhorar nossos serviços, responder a comentários e perguntas, e enviar informações técnicas e de suporte.</p>
+
+        <h2>3. Compartilhamento de informações</h2>
+        <p>Não vendemos, trocamos ou transferimos suas informações pessoais para terceiros sem o seu consentimento, exceto quando necessário para fornecer nossos serviços.</p>
+
+        <h2>4. Cookies</h2>
+        <p>Utilizamos cookies para melhorar sua experiência de navegação. Você pode configurar seu navegador para recusar cookies, mas isso pode afetar algumas funcionalidades do site.</p>
+
+        <h2>5. Segurança</h2>
+        <p>Adotamos medidas de segurança apropriadas para proteger suas informações contra acesso não autorizado, alteração, divulgação ou destruição.</p>
+
+        <h2>6. Contato</h2>
+        <p>Se você tiver dúvidas sobre esta política de privacidade, entre em contato conosco pelo e-mail: <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a></p>
+      </div>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,28 @@
+---
+// Features-A: Grid 3 colunas com cards
+interface Item { icon: string; title: string; desc: string; }
+interface Props { title: string; items: Item[]; }
+const { title, items } = Astro.props;
+---
+<section class="py-20 bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4">
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <span class="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Nossos Diferenciais</span>
+      <h2 class="text-3xl md:text-4xl font-black text-dark">{title}</h2>
+    </div>
+
+    <!-- Grid de cards -->
+    <div class="grid md:grid-cols-3 gap-6">
+      {items.map((item, i) => (
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all">
+          <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl mb-6">
+            {item.icon}
+          </div>
+          <h3 class="text-lg font-bold text-dark mb-3">{item.title}</h3>
+          <p class="text-gray-500 leading-relaxed text-sm">{item.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

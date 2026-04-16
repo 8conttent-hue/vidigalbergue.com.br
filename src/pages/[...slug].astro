@@ -1,0 +1,148 @@
+---
+import { getPost, getAllPosts } from '../lib/posts';
+import { marked } from 'marked';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import Footer from '../sections/Footer.astro';
+
+// Catch-all: slug pode conter barras (ex: "2024/05/titulo-do-post")
+const { slug } = Astro.params;
+const fullSlug = Array.isArray(slug) ? slug.join('/') : (slug || '');
+const post = await getPost(fullSlug);
+
+if (!post) {
+  return Astro.redirect('/');
+}
+
+// Processar conteúdo para converter Markdown/HTML
+const htmlContent = marked(post.body || '');
+---
+<BaseLayout title={post.title} description={post.description} image={post.heroImage}>
+  <Header />
+
+  <article class="py-16 bg-white min-h-screen">
+    <div class="max-w-3xl mx-auto px-4">
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-sm text-gray-400 mb-8">
+        <a href="/" class="hover:text-primary transition-colors">Home</a>
+        <span>/</span>
+        <span class="text-gray-600 line-clamp-1">{post.title}</span>
+      </nav>
+
+      <!-- Header do post -->
+      <header class="mb-10">
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-4">
+          {post.category}
+        </div>
+        <h1 class="text-3xl md:text-4xl font-black text-dark leading-tight mb-6">
+          {post.title}
+        </h1>
+        <p class="text-gray-500 text-lg leading-relaxed mb-6">
+          {post.description}
+        </p>
+        <div class="flex items-center gap-4 text-sm text-gray-400 pb-6 border-b border-gray-100">
+          <span>Por <strong class="text-dark">{post.author}</strong></span>
+          <span>·</span>
+          <time datetime={post.pubDate}>
+            {new Date(post.pubDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </time>
+        </div>
+      </header>
+
+      <!-- Imagem hero -->
+      {post.heroImage && (
+        <div class="aspect-video rounded-2xl overflow-hidden mb-10 bg-gray-100">
+          <img
+            src={post.heroImage}
+            alt={post.title}
+            class="w-full h-full object-cover"
+            loading="eager"
+          />
+        </div>
+      )}
+
+      <!-- Conteúdo -->
+      <div class="prose-pbn" set:html={htmlContent} />
+
+      <style is:global>
+        .prose-pbn {
+          color: #374151; /* gray-700 */
+          line-height: 1.625;
+          font-size: 1.125rem;
+        }
+        .prose-pbn p {
+          margin-bottom: 1.5rem;
+        }
+        .prose-pbn h2 {
+          font-size: 1.875rem;
+          font-weight: 900;
+          color: #0f172a; /* dark/slate-900 */
+          margin-top: 3rem;
+          margin-bottom: 1.5rem;
+          letter-spacing: -0.025em;
+        }
+        .prose-pbn h3 {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: #0f172a;
+          margin-top: 2.5rem;
+          margin-bottom: 1rem;
+          letter-spacing: -0.025em;
+        }
+        .prose-pbn a {
+          color: var(--primary-color, #2563eb);
+          font-weight: 700;
+          text-decoration: underline;
+          transition: all 0.2s;
+        }
+        .prose-pbn a:hover {
+          text-decoration: none;
+        }
+        .prose-pbn ul, .prose-pbn ol {
+          margin-bottom: 1.5rem;
+          margin-left: 1.5rem;
+          list-style-type: disc;
+        }
+        .prose-pbn li {
+          margin-bottom: 0.5rem;
+        }
+        .prose-pbn img {
+          border-radius: 1rem;
+          margin-top: 2.5rem;
+          margin-bottom: 2.5rem;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+        .prose-pbn blockquote {
+          border-left-width: 4px;
+          border-left-color: var(--primary-color, #2563eb);
+          padding-left: 1.5rem;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          font-style: italic;
+          color: #6b7280; /* gray-500 */
+          margin-top: 2rem;
+          margin-bottom: 2rem;
+          background-color: #f9fafb; /* gray-50 */
+          border-top-right-radius: 0.75rem;
+          border-bottom-right-radius: 0.75rem;
+        }
+      </style>
+
+      <!-- Tags -->
+      {post.tags && post.tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mt-12 pt-8 border-t border-gray-100">
+          {post.tags.map((tag: string) => (
+            <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  </article>
+
+  <Footer />
+</BaseLayout>

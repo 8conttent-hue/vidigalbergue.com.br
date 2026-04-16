@@ -1,0 +1,85 @@
+---
+import '../../styles/admin.css';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Admin</title>
+</head>
+<body class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Painel Admin</h1>
+            <p class="text-slate-500 text-sm mt-1">Entre com sua senha de administrador</p>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div id="error" class="hidden mb-4 p-3 bg-red-50 text-red-700 border-l-4 border-red-500 text-sm font-medium rounded-r-lg"></div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Senha</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-medium focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                        placeholder="••••••••••••"
+                        autofocus
+                        required
+                    />
+                </div>
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm shadow-violet-600/20"
+                >
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('login-form') as HTMLFormElement;
+        const errorDiv = document.getElementById('error') as HTMLDivElement;
+        const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = (document.getElementById('password') as HTMLInputElement).value;
+            errorDiv.classList.add('hidden');
+            submitBtn.textContent = 'Entrando...';
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password }),
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    window.location.href = '/admin';
+                } else {
+                    errorDiv.textContent = data.error || 'Senha incorreta.';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.textContent = 'Entrar';
+                    submitBtn.disabled = false;
+                }
+            } catch {
+                errorDiv.textContent = 'Erro de conexão. Tente novamente.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.textContent = 'Entrar';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

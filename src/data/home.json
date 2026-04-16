@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "VIDIGALBERGUE — Descubra o Mundo com Ana Paula",
+    "description": "Junte-se a mim na minha jornada de viagens e experiências únicas."
+  },
+  "hero": {
+    "title": "Descubra o Mundo com Ana Paula",
+    "subtitle": "Junte-se a mim na minha jornada de viagens e experiências únicas.",
+    "btnText": "Explore Agora",
+    "bgImage": "/images/hero.jpg",
+    "btnLink": "/blog"
+  },
+  "features": {
+    "title": "O que você encontrará aqui?",
+    "items": [
+      {
+        "icon": "✈️",
+        "title": "Dicas de Viagem",
+        "desc": "Saiba como explorar cada destino com praticidade e segurança."
+      },
+      {
+        "icon": "🍽️",
+        "title": "Culinária Global",
+        "desc": "Descubra sabores incríveis e receitas de diferentes culturas."
+      },
+      {
+        "icon": "👗",
+        "title": "Moda e Estilo",
+        "desc": "Inspire-se nas tendências e estilos de moda ao redor do mundo."
+      },
+      {
+        "icon": "💼",
+        "title": "Empreendedorismo",
+        "desc": "Aprenda sobre como transformar suas paixões em negócios de sucesso."
+      }
+    ]
+  },
+  "about": {
+    "title": "Sobre Mim",
+    "desc": "Meu nome é Ana Paula, sou carioca e amante de viagens. Com 29 anos, iniciei uma jornada incrível ao redor do mundo, mergulhando nas culturas mais diversas.",
+    "stats": [
+      {
+        "value": "5",
+        "label": "Anos de Experiência em Viagens"
+      },
+      {
+        "value": "50+",
+        "label": "Países Visitados"
+      },
+      {
+        "value": "100+",
+        "label": "Amizades Formadas"
+      }
+    ],
+    "image": "/images/about.jpg",
+    "btnText": "Saiba Mais",
+    "btnLink": "/sobre"
+  },
+  "posts": {
+    "title": "Últimos Artigos",
+    "limit": 3,
+    "btnText": "Ver Blog",
+    "btnLink": "/blog"
+  }
+}

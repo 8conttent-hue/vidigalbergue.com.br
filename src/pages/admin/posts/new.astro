@@ -1,0 +1,7 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PostEditor from '../../../components/admin/PostEditor';
+---
+<AdminLayout title="Novo Post" activeSection="posts">
+    <PostEditor client:load filePath={null} />
+</AdminLayout>

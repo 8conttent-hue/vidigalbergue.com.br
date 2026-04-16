@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import Footer from '../sections/Footer.astro';
+import siteConfig from '../data/siteConfig.json';
+---
+<BaseLayout title="Termos de Uso" description="Termos e condições de uso do site.">
+  <Header />
+  <section class="py-16 bg-white min-h-screen">
+    <div class="max-w-3xl mx-auto px-4">
+      <h1 class="text-3xl font-black text-dark mb-8">Termos de Uso</h1>
+      <div class="prose prose-gray max-w-none">
+        <p class="text-gray-500">Última atualização: {new Date().toLocaleDateString('pt-BR')}</p>
+
+        <h2>1. Aceitação dos Termos</h2>
+        <p>Ao acessar e usar este site, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não use nosso site.</p>
+
+        <h2>2. Uso do Conteúdo</h2>
+        <p>Todo o conteúdo disponível neste site é protegido por direitos autorais. Você pode ler e compartilhar o conteúdo para fins pessoais e não comerciais, desde que cite a fonte.</p>
+
+        <h2>3. Conteúdo do Usuário</h2>
+        <p>Ao enviar conteúdo para este site (como comentários), você concede a nós uma licença não exclusiva para usar, reproduzir e publicar esse conteúdo.</p>
+
+        <h2>4. Isenção de Responsabilidade</h2>
+        <p>O conteúdo deste site é fornecido apenas para fins informativos. Não nos responsabilizamos por quaisquer danos decorrentes do uso das informações aqui disponíveis.</p>
+
+        <h2>5. Links Externos</h2>
+        <p>Este site pode conter links para sites externos. Não somos responsáveis pelo conteúdo ou práticas de privacidade de sites de terceiros.</p>
+
+        <h2>6. Alterações nos Termos</h2>
+        <p>Reservamo-nos o direito de modificar estes termos a qualquer momento. Recomendamos que você revise esta página periodicamente.</p>
+
+        <h2>7. Contato</h2>
+        <p>Para dúvidas sobre estes termos, entre em contato: <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a></p>
+      </div>
+    </div>
+  </section>
+  <Footer />
+</BaseLayout>

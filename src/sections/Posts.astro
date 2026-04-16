@@ -1,0 +1,57 @@
+---
+// Posts-G: Dynamic Masonry-ish Grid - Design fluido e moderno
+import { getAllPosts } from '../lib/posts';
+interface Props { title: string; limit: number; btnText: string; btnLink: string; }
+const { title, limit, btnText, btnLink } = Astro.props;
+
+const posts = (await getAllPosts()).slice(0, limit);
+---
+<section class="py-24 bg-white relative">
+  <div class="max-w-6xl mx-auto px-4">
+    <!-- Header -->
+    <div class="mb-20 text-center">
+      <h2 class="text-4xl md:text-7xl font-black text-dark tracking-tighter mb-4 leading-none">{title}</h2>
+      <p class="text-sm font-black text-primary uppercase tracking-widest">{btnText} de forma exploratória</p>
+    </div>
+
+    <!-- Masonry-like Grid (Multi-column CSS) -->
+    <div class="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+      {posts.map((post, i) => (
+        <article class={`break-inside-avoid group bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all p-2 duration-500`}>
+          <a href={`/${post.slug}`} class="block">
+            <!-- Image with variable aspect ratio simulation -->
+            <div class={`rounded-2xl overflow-hidden mb-6 bg-gray-50 ${i % 2 === 0 ? 'aspect-square' : 'aspect-[4/5]'}`}>
+              {post.heroImage && (
+                <img
+                  src={post.heroImage}
+                  alt={post.title}
+                  class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                />
+              )}
+            </div>
+            
+            <div class="px-4 pb-6">
+               <div class="flex items-center gap-3 mb-4">
+                  <span class="w-2 h-2 rounded-full bg-primary opacity-50 group-hover:opacity-100 transition-opacity"></span>
+                  <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-primary transition-colors tracking-[0.2em]">{post.category || 'Insights'}</span>
+               </div>
+               
+               <h3 class="text-xl font-black text-dark leading-tight tracking-tight mb-4 group-hover:text-primary transition-colors">
+                  {post.title}
+               </h3>
+               
+               <p class="text-sm text-gray-500 leading-relaxed font-medium line-clamp-3">
+                  {post.description}
+               </p>
+               
+               <div class="mt-8 pt-8 border-t border-gray-50 flex items-center justify-between text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                  <span>{new Date(post.pubDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>
+                  <span class="group-hover:text-primary transition-colors">Ler Mais →</span>
+               </div>
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

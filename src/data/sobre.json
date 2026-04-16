@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "title": "Sobre Nós",
+    "description": "Conheça o VIDIGALBERGUE"
+  },
+  "hero": {
+    "title": "Sobre Nós",
+    "subtitle": "Meu nome é Ana Paula, sou carioca e amante de viagens. Com 29 anos, iniciei uma jornada incrível ao redor do mundo, mergulhando nas culturas mais diversas."
+  },
+  "content": "No VidigalBergue, meu primeiro empreendimento, aprendi que viajar e empreender andam de mãos dadas. Hoje, compartilho minha paixão para inspirar outros a viverem experiências memoráveis.",
+  "mission": "Inspirar novas pessoas a viajarem e apreciarem a diversidade cultural, enquanto compartilho conhecimento sobre empreendedorismo e estilo de vida.",
+  "image": "/images/sobre.jpg",
+  "stats": [
+    {
+      "value": "500+",
+      "label": "Artigos"
+    },
+    {
+      "value": "100k+",
+      "label": "Leitores"
+    },
+    {
+      "value": "5",
+      "label": "Redatores"
+    }
+  ],
+  "team": []
+}

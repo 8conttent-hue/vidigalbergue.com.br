@@ -1,0 +1,61 @@
+---
+// Contato-I: Appointment Request - Design focado em agendamento e consultoria
+interface Props { title: string; subtitle?: string; desc?: string; content?: string;
+}
+const { title, subtitle, desc, content } = Astro.props;
+const description = subtitle || desc || '';
+
+const benefits = [
+  'Atendimento Individualizado',
+  'Foco em Pesquisa Científica',
+  'Expertise em TEA & Enfermagem',
+  'Suporte Pós-Consulta'
+];
+---
+<section class="py-24 bg-white overflow-hidden">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="grid lg:grid-cols-2 gap-20 items-center">
+      
+      <!-- Esquerda: Info & Benefícios -->
+      <div>
+         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em] mb-4 block">Pesquisa & Assistência</span>
+         <h1 class="text-4xl md:text-6xl font-black text-dark tracking-tighter uppercase mb-8 italic leading-none">{title}</h1>
+      {content && <p class="text-gray-500 mt-4 leading-relaxed">{content}</p>}
+         <p class="text-xl text-gray-500 font-medium leading-relaxed italic mb-12">"{description}"</p>
+         
+         <div class="grid sm:grid-cols-2 gap-6">
+            {benefits.map(b => (
+              <div class="flex items-center gap-3 group">
+                 <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                 </div>
+                 <span class="text-xs font-black uppercase text-dark tracking-widest">{b}</span>
+              </div>
+            ))}
+         </div>
+      </div>
+
+      <!-- Direita: Booking Form -->
+      <div class="bg-gray-50 rounded-[4rem] p-10 md:p-16 border border-gray-100 shadow-xl relative group">
+         <div class="absolute -top-12 -left-12 w-24 h-24 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+         <h2 class="text-3xl font-black mb-10 tracking-tight text-dark uppercase italic">Solicitar Agendamento</h2>
+         <form class="grid gap-6">
+            <div class="space-y-6">
+               <input type="text" placeholder="Nome Completo" class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-dark focus:border-primary focus:outline-none transition-all shadow-sm" />
+               <div class="grid md:grid-cols-2 gap-6">
+                  <input type="date" class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-dark focus:border-primary focus:outline-none transition-all shadow-sm" />
+                  <input type="time" class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-dark focus:border-primary focus:outline-none transition-all shadow-sm" />
+               </div>
+            </div>
+            <textarea placeholder="Breve resumo da necessidade..." rows="4" class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-dark focus:border-primary focus:outline-none transition-all shadow-sm resize-none"></textarea>
+            <button class="w-full bg-primary text-white py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-dark transition-all shadow-2xl shadow-primary/20">
+               Confirmar Interesse
+            </button>
+            <p class="text-center text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-4 leading-none">
+               Entraremos em contato via e-mail para confirmação.
+            </p>
+         </form>
+      </div>
+    </div>
+  </div>
+</section>

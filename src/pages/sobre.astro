@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import SobreSection from '../sections/Sobre.astro';
+import Footer from '../sections/Footer.astro';
+import sobreData from '../data/sobre.json';
+---
+<BaseLayout title={sobreData.meta.title} description={sobreData.meta.description}>
+  <Header />
+  <SobreSection
+    title={sobreData.hero.title}
+    subtitle={sobreData.hero.subtitle}
+    desc={sobreData.hero.subtitle}
+    content={sobreData.content}
+    mission={sobreData.mission}
+    image={sobreData.image}
+    stats={sobreData.stats}
+  />
+  <Footer />
+</BaseLayout>

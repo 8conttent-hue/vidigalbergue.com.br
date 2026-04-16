@@ -1,0 +1,61 @@
+---
+import { getAllPosts } from '../lib/posts';
+import { marked } from 'marked';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import Footer from '../sections/Footer.astro';
+
+const posts = await getAllPosts();
+---
+<BaseLayout title="Blog" description="Todos os artigos e publicações do blog.">
+  <Header />
+
+  <section class="py-16 bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Blog</span>
+        <h1 class="text-4xl md:text-5xl font-black text-dark">Todos os Artigos</h1>
+      </div>
+
+      <!-- Grid de posts -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {posts.map(post => (
+          <article class="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all">
+            <div class="aspect-video bg-gradient-to-br from-primary/10 to-accent/5 overflow-hidden">
+              {post.heroImage && (
+                <img
+                  src={post.heroImage}
+                  alt={post.title}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              )}
+            </div>
+            <div class="p-5">
+              <div class="text-xs font-bold text-primary uppercase tracking-widest mb-2">
+                {post.category}
+              </div>
+              <h2 class="font-bold text-dark leading-snug mb-3 group-hover:text-primary transition-colors">
+                <a href={`/${post.slug}`}>{post.title}</a>
+              </h2>
+              <p class="text-sm text-gray-500 line-clamp-2 mb-4">{post.description}</p>
+              <div class="flex items-center justify-between text-xs text-gray-400">
+                <span>{post.author}</span>
+                <span>{new Date(post.pubDate).toLocaleDateString('pt-BR')}</span>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {posts.length === 0 && (
+        <div class="text-center py-20 text-gray-400">
+          <p class="text-xl">Nenhum artigo publicado ainda.</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>

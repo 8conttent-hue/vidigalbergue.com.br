@@ -1,0 +1,7 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ConfigEditor from '../../components/admin/ConfigEditor';
+---
+<AdminLayout title="Configurações" activeSection="config">
+    <ConfigEditor client:load />
+</AdminLayout>

@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../sections/Header.astro';
+import ContatoSection from '../sections/Contato.astro';
+import Footer from '../sections/Footer.astro';
+import contatoData from '../data/contato.json';
+---
+<BaseLayout title={contatoData.meta.title} description={contatoData.meta.description}>
+  <Header />
+  <ContatoSection
+    title={contatoData.title}
+    subtitle={contatoData.subtitle}
+    desc={contatoData.subtitle}
+    email={contatoData.email}
+    responseTime={contatoData.responseTime}
+    content={contatoData.content}
+  />
+  <Footer />
+</BaseLayout>

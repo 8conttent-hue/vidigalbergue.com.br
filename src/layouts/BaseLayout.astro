@@ -1,0 +1,66 @@
+---
+import siteConfig from '../data/siteConfig.json';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description, image } = Astro.props;
+const pageTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.name;
+const pageDesc  = description || siteConfig.description || '';
+const fontUrl   = siteConfig.fontUrl || '';
+const colors    = (siteConfig as any).colors || { primary: '#3b82f6', accent: '#10b981', dark: '#0f172a' };
+const fontFamily = siteConfig.fontFamily || 'system-ui, sans-serif';
+const isSidebar = (siteConfig as any).components?.header === 'Header-D';
+---
+<!DOCTYPE html>
+<html lang="pt-BR" class={isSidebar ? 'has-sidebar' : ''}>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={pageDesc} />
+
+  <style is:global define:vars={{ primary: colors.primary, accent: colors.accent, dark: colors.dark, fontFamily }}>
+    :root {
+      --primary: var(--primary);
+      --accent: var(--accent);
+      --dark: var(--dark);
+      --font-family: var(--fontFamily);
+    }
+  </style>
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content={pageTitle} />
+  <meta property="og:description" content={pageDesc} />
+  {image && <meta property="og:image" content={image} />}
+  <meta property="og:type"  content="website" />
+  <meta property="og:locale" content="pt_BR" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content={pageTitle} />
+  <meta name="twitter:description" content={pageDesc} />
+
+  <!-- Google Fonts -->
+  {fontUrl && (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link rel="stylesheet" href={fontUrl} />
+    </>
+  )}
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site || 'https://example.com').toString()} />
+</head>
+<body>
+  <slot />
+</body>
+</html>
