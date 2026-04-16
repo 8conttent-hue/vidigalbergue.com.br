@@ -14,6 +14,12 @@ const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
 const networkId  = import.meta.env.NETWORK_SITE_ID || '0';
 
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+const CACHE_TTL_MS = 60_000;
+
+type CacheEntry = { at: number; posts: any[] };
+const POSTS_CACHE = ((globalThis as any).__SF_POSTS_CACHE ||= new Map<string, CacheEntry>()) as Map<string, CacheEntry>;
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export interface PostMeta {
   slug: string;
@@ -29,6 +35,31 @@ export interface PostMeta {
 
 export interface Post extends PostMeta {
   body: string;
+}
+
+async function fetchDbPostsWithRetry(numericId: number, maxAttempts = 3): Promise<any[]> {
+  if (!supabase) return [];
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 7000);
+    try {
+      const { data: dbPosts, error: dbError } = await supabase
+        .from('posts')
+        // listagem não precisa do campo content (muito pesado)
+        .select('slug,title,description,pub_date,hero_image,category')
+        .eq('network_site_id', numericId)
+        .eq('is_published', true)
+        .order('pub_date', { ascending: false })
+        .abortSignal(ctrl.signal);
+      if (!dbError) return dbPosts || [];
+      lastError = dbError;
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (attempt < maxAttempts) await sleep(250 * attempt);
+  }
+  throw lastError;
 }
 
 function parseFrontmatter(raw: string): { meta: Record<string, any>; body: string } {
@@ -85,14 +116,10 @@ export async function getAllPosts(includeDrafts = false): Promise<PostMeta[]> {
   // 2. Carregar posts do Supabase (Se configurado)
   const numericId = parseInt(networkId);
   if (supabase && !isNaN(numericId) && numericId > 0) {
+    const cacheKey = `all:${numericId}`;
     try {
-      const { data: dbPosts, error: dbError } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('network_site_id', numericId)
-        .eq('is_published', true);
-
-      if (dbError) throw dbError;
+      const dbPosts = await fetchDbPostsWithRetry(numericId, 3);
+      POSTS_CACHE.set(cacheKey, { at: Date.now(), posts: dbPosts });
 
       if (dbPosts) {
         dbPosts.forEach(p => {
@@ -113,6 +140,24 @@ export async function getAllPosts(includeDrafts = false): Promise<PostMeta[]> {
       }
     } catch (e) {
       console.error('[Scaffold Supabase Error]', e);
+      const cached = POSTS_CACHE.get(cacheKey);
+      if (cached && (Date.now() - cached.at) <= CACHE_TTL_MS) {
+        cached.posts.forEach(p => {
+          if (!posts.find(local => local.slug === p.slug)) {
+            posts.push({
+              slug: p.slug,
+              title: p.title,
+              description: p.description || '',
+              pubDate: p.pub_date,
+              heroImage: p.hero_image,
+              category: p.category || 'Geral',
+              author: 'Equipe',
+              draft: false,
+              tags: [],
+            });
+          }
+        });
+      }
     }
   }
 
@@ -145,13 +190,21 @@ export async function getPost(slug: string): Promise<Post | null> {
 
   // 2. Tentar Supabase
   if (supabase && networkId !== '0') {
+    const numericId = parseInt(networkId);
+    const cacheKey = `all:${numericId}`;
     try {
-      const { data: p } = await supabase
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 7000);
+      const { data: p, error } = await supabase
         .from('posts')
         .select('*')
-        .eq('network_site_id', parseInt(networkId))
+        .eq('network_site_id', numericId)
         .eq('slug', slug)
+        .eq('is_published', true)
+        .abortSignal(ctrl.signal)
         .single();
+      clearTimeout(timeout);
+      if (error) throw error;
 
       if (p) {
         return {
@@ -168,6 +221,24 @@ export async function getPost(slug: string): Promise<Post | null> {
         };
       }
     } catch (e) {
+      const cached = POSTS_CACHE.get(cacheKey);
+      if (cached && (Date.now() - cached.at) <= CACHE_TTL_MS) {
+        const p = cached.posts.find((x: any) => x.slug === slug);
+        if (p) {
+          return {
+            slug: p.slug,
+            title: p.title,
+            description: p.description || '',
+            pubDate: p.pub_date,
+            heroImage: p.hero_image,
+            category: p.category || 'Geral',
+            author: 'Equipe',
+            draft: false,
+            tags: [],
+            body: p.content || '',
+          };
+        }
+      }
       return null;
     }
   }
