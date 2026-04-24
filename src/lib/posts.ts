@@ -8,10 +8,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const BLOG_DIR = resolve(process.cwd(), 'src/content/blog');
 
-// ENVs injetadas pela Vercel/Deploy
-const supabaseUrl = import.meta.env.SUPABASE_URL || '';
-const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
-const networkId  = import.meta.env.NETWORK_SITE_ID || '0';
+// ENVs — try import.meta.env first (Astro), fallback to process.env (Vercel SSR)
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+const networkId  = import.meta.env.NETWORK_SITE_ID || process.env.NETWORK_SITE_ID || '0';
 
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 const CACHE_TTL_MS = 60_000;
