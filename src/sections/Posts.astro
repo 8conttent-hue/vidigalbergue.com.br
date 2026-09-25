@@ -1,10 +1,10 @@
 ---
 // Posts-G: Dynamic Masonry-ish Grid - Design fluido e moderno
-import { getAllPosts } from '../lib/posts';
+import { getPosts } from '../lib/posts';
 interface Props { title: string; limit: number; btnText: string; btnLink: string; }
 const { title, limit, btnText, btnLink } = Astro.props;
 
-const posts = (await getAllPosts()).slice(0, limit);
+const posts = (await getPosts()).slice(0, limit);
 ---
 <section class="py-24 bg-white relative">
   <div class="max-w-6xl mx-auto px-4">
@@ -21,9 +21,9 @@ const posts = (await getAllPosts()).slice(0, limit);
           <a href={`/${post.slug}`} class="block">
             <!-- Image with variable aspect ratio simulation -->
             <div class={`rounded-2xl overflow-hidden mb-6 bg-gray-50 ${i % 2 === 0 ? 'aspect-square' : 'aspect-[4/5]'}`}>
-              {post.heroImage && (
+              {post.featured_image && (
                 <img
-                  src={post.heroImage}
+                  src={post.featured_image}
                   alt={post.title}
                   class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
                 />
@@ -33,7 +33,7 @@ const posts = (await getAllPosts()).slice(0, limit);
             <div class="px-4 pb-6">
                <div class="flex items-center gap-3 mb-4">
                   <span class="w-2 h-2 rounded-full bg-primary opacity-50 group-hover:opacity-100 transition-opacity"></span>
-                  <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-primary transition-colors tracking-[0.2em]">{post.category || 'Insights'}</span>
+                  <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-primary transition-colors tracking-[0.2em]">{post.category || 'Artigo'}</span>
                </div>
                
                <h3 class="text-xl font-black text-dark leading-tight tracking-tight mb-4 group-hover:text-primary transition-colors">
@@ -41,11 +41,11 @@ const posts = (await getAllPosts()).slice(0, limit);
                </h3>
                
                <p class="text-sm text-gray-500 leading-relaxed font-medium line-clamp-3">
-                  {post.description}
+                  {post.meta_description || ''}
                </p>
                
                <div class="mt-8 pt-8 border-t border-gray-50 flex items-center justify-between text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-                  <span>{new Date(post.pubDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>
+                  <span>{new Date(post.published_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>
                   <span class="group-hover:text-primary transition-colors">Ler Mais →</span>
                </div>
             </div>

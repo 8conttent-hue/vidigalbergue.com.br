@@ -1,29 +1,9 @@
 ---
 // Header-H: Double Tier (Top Bar + Main Nav)
 import siteConfig from '../data/siteConfig.json';
-import { getAllPosts } from '../lib/posts';
 
-const { name, menu: baseMenu = [], contact = { email: 'contato@exemplo.com', phone: '(11) 99999-9999' } } = siteConfig;
-
-// Buscar categorias REAIS do banco de dados (SSR)
-const allPosts = await getAllPosts();
-const realCategories = [...new Set(allPosts.map(p => p.category))].filter(Boolean);
-
-// Injetar categorias reais no item "Blog" do menu
-const menu = baseMenu.map((item: any) => {
-  if (item.label.toLowerCase() === 'blog' || item.href === '/blog') {
-    return {
-      ...item,
-      children: realCategories.length
-        ? realCategories.map(cat => ({
-            label: cat,
-            href: `/categoria/${cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')}`
-          }))
-        : undefined,
-    };
-  }
-  return item;
-});
+const { name, menu = [], email = 'contato@exemplo.com' } = siteConfig;
+const contact = { email, phone: '(11) 99999-9999' };
 ---
 <header class="w-full z-[100] shadow-sm">
   <!-- Top Bar -->

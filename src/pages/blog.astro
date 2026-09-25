@@ -1,11 +1,10 @@
 ---
-import { getAllPosts } from '../lib/posts';
-import { marked } from 'marked';
+import { getPosts } from '../lib/posts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../sections/Header.astro';
 import Footer from '../sections/Footer.astro';
 
-const posts = await getAllPosts();
+const posts = await getPosts();
 ---
 <BaseLayout title="Blog" description="Todos os artigos e publicações do blog.">
   <Header />
@@ -23,9 +22,9 @@ const posts = await getAllPosts();
         {posts.map(post => (
           <article class="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all">
             <div class="aspect-video bg-gradient-to-br from-primary/10 to-accent/5 overflow-hidden">
-              {post.heroImage && (
+              {post.featured_image && (
                 <img
-                  src={post.heroImage}
+                  src={post.featured_image}
                   alt={post.title}
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
@@ -34,15 +33,15 @@ const posts = await getAllPosts();
             </div>
             <div class="p-5">
               <div class="text-xs font-bold text-primary uppercase tracking-widest mb-2">
-                {post.category}
+                Artigo
               </div>
               <h2 class="font-bold text-dark leading-snug mb-3 group-hover:text-primary transition-colors">
                 <a href={`/${post.slug}`}>{post.title}</a>
               </h2>
-              <p class="text-sm text-gray-500 line-clamp-2 mb-4">{post.description}</p>
+              <p class="text-sm text-gray-500 line-clamp-2 mb-4">{post.meta_description}</p>
               <div class="flex items-center justify-between text-xs text-gray-400">
-                <span>{post.author}</span>
-                <span>{new Date(post.pubDate).toLocaleDateString('pt-BR')}</span>
+                <span>Equipe Editorial</span>
+                <span>{new Date(post.published_at).toLocaleDateString('pt-BR')}</span>
               </div>
             </div>
           </article>

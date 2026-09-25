@@ -1,26 +1,14 @@
-import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
+﻿import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
-import vercel from '@astrojs/vercel';
 
 export default defineConfig({
+  site: 'https://vidigalbergue.com.br',
   output: 'server',
-  adapter: vercel({
-    includeFiles: ['./src/content/blog'],
-    webAnalytics: {
-      enabled: true,
-    },
+  adapter: cloudflare({
+    imageService: 'passthrough',
   }),
-  integrations: [
-    react(),
-  ],
-  markdown: {
-    allowDangerousHtml: true,
-  },
   vite: {
     plugins: [tailwindcss()],
-    optimizeDeps: {
-      include: ['marked'],
-    },
   },
 });

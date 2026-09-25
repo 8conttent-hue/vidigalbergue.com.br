@@ -1,0 +1,74 @@
+---
+import siteConfig from '../data/siteConfig.json';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonicalUrl?: string;
+  image?: string;
+  type?: string;
+  author?: string;
+  publishedTime?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalUrl = new URL(Astro.url.pathname, Astro.site || siteConfig.url).toString(),
+  image,
+  type = 'website',
+  author = 'Equipe Editorial',
+  publishedTime,
+} = Astro.props;
+
+const siteName = siteConfig.name;
+const siteUrl = siteConfig.url;
+
+const fullTitle = title.toLowerCase().includes(siteName.toLowerCase())
+  ? title
+  : `${title} | ${siteName}`;
+
+const absoluteImage = image
+  ? new URL(image, Astro.site || siteUrl).toString()
+  : new URL('/images/hero.jpg', Astro.site || siteUrl).toString();
+
+const schema = type === 'article'
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description,
+      image: [absoluteImage],
+      url: canonicalUrl,
+      datePublished: publishedTime,
+      author: { '@type': 'Person', name: author },
+      publisher: { '@type': 'Organization', name: siteName, url: siteUrl },
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: siteName,
+      url: siteUrl,
+      description,
+    };
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+<meta name="robots" content="index, follow" />
+
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content={type === 'article' ? 'article' : 'website'} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={absoluteImage} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content="pt_BR" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={absoluteImage} />
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

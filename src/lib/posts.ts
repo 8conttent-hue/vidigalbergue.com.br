@@ -1,242 +1,103 @@
-/**
- * Motor de Posts Híbrido:
- * Carrega posts locais (Markdown) e posts remotos (Supabase).
- */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { createClient } from '@supabase/supabase-js';
+﻿import { supabase } from './supabase';
 
-const BLOG_DIR = resolve(process.cwd(), 'src/content/blog');
-
-// ENVs — try import.meta.env first (Astro), fallback to process.env (Vercel SSR)
-const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL || '';
-const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
-const networkId  = import.meta.env.NETWORK_SITE_ID || process.env.NETWORK_SITE_ID || '0';
-
-const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
-const CACHE_TTL_MS = 60_000;
-
-type CacheEntry = { at: number; posts: any[] };
-const POSTS_CACHE = ((globalThis as any).__SF_POSTS_CACHE ||= new Map<string, CacheEntry>()) as Map<string, CacheEntry>;
-
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
-export interface PostMeta {
+export interface Post {
+  id: string;
+  domain?: string;
+  network_site_id?: number | string;
   slug: string;
   title: string;
-  description: string;
-  pubDate: string;
-  heroImage: string;
-  category: string;
-  author: string;
-  draft: boolean;
-  tags: string[];
+  content: string;
+  meta_description?: string;
+  featured_image?: string;
+  category?: string;
+  author?: string;
+  published_at: string;
 }
 
-export interface Post extends PostMeta {
-  body: string;
-}
+export function formatContentToHtml(rawContent: string): string {
+  if (!rawContent) return '';
 
-async function fetchDbPostsWithRetry(siteId: string, maxAttempts = 3): Promise<any[]> {
-  if (!supabase) return [];
-  let lastError: any = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 7000);
-    try {
-      const { data: dbPosts, error: dbError } = await supabase
-        .from('network_posts')
-        .select('slug,title,meta_description,published_at,featured_image')
-        .eq('network_site_id', parseInt(siteId) || 0)
-        .order('published_at', { ascending: false })
-        .abortSignal(ctrl.signal);
-      if (!dbError) return dbPosts || [];
-      lastError = dbError;
-    } finally {
-      clearTimeout(timeout);
-    }
-    if (attempt < maxAttempts) await sleep(250 * attempt);
-  }
-  throw lastError;
-}
+  let html = rawContent;
+  html = html.replace(/style="[^"]*"/gi, '');
 
-function parseFrontmatter(raw: string): { meta: Record<string, any>; body: string } {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) return { meta: {}, body: raw };
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, url) => {
+    return `<img src="${url}" alt="${alt || 'VIDIGALBERGUE'}" class="my-6 rounded-2xl w-full max-h-[500px] object-cover shadow-md" />`;
+  });
 
-  const meta: Record<string, any> = {};
-  for (const line of match[1].split('\n')) {
-    const idx = line.indexOf(':');
-    if (idx === -1) continue;
-    const key = line.slice(0, idx).trim();
-    let val = line.slice(idx + 1).trim();
-    if ((val.startsWith('"') && val.endsWith('"')) ||
-        (val.startsWith("'") && val.endsWith("'"))) {
-      val = val.slice(1, -1);
-    }
-    if (val === 'true') meta[key] = true;
-    else if (val === 'false') meta[key] = false;
-    else meta[key] = val;
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-accent font-semibold">${text}</a>`;
+  });
+
+  html = html.replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-dark mt-6 mb-3">$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-black text-dark mt-8 mb-4">$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-black text-dark mt-8 mb-4">$1</h1>');
+
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-dark">$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+
+  if (html.includes('<p>') || html.includes('<h2>') || html.includes('<div>')) {
+    return html;
   }
 
-  return { meta, body: match[2].trim() };
+  const paragraphs = html
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+    .map((p) => {
+      if (p.startsWith('<h') || p.startsWith('<img') || p.startsWith('<blockquote') || p.startsWith('<ul') || p.startsWith('<ol')) {
+        return p;
+      }
+      return `<p class="mb-6 text-gray-600 leading-relaxed text-base sm:text-lg">${p}</p>`;
+    });
+
+  return paragraphs.join('\n');
 }
 
-export async function getAllPosts(includeDrafts = false): Promise<PostMeta[]> {
-  const posts: PostMeta[] = [];
+const DOMAIN = 'vidigalbergue.com.br';
 
-  // 1. Carregar posts locais (.md)
+export async function getPosts(): Promise<Post[]> {
   try {
-    if (existsSync(BLOG_DIR)) {
-      const files = readdirSync(BLOG_DIR).filter(f => f.endsWith('.md'));
-      for (const file of files) {
-        try {
-          const raw = readFileSync(resolve(BLOG_DIR, file), 'utf-8');
-          const { meta } = parseFrontmatter(raw);
-          const slug = file.replace('.md', '');
-          if (!includeDrafts && meta.draft === true) continue;
-          posts.push({
-            slug,
-            title: meta.title || slug,
-            description: meta.description || '',
-            pubDate: meta.pubDate || '',
-            heroImage: meta.heroImage || '',
-            category: meta.category || 'Geral',
-            author: meta.author || '',
-            draft: meta.draft === true,
-            tags: [],
-          });
-        } catch { /* pula */ }
-      }
-    }
-  } catch { /* ignore list error */ }
+    const { data, error } = await supabase
+      .from('network_posts')
+      .select('*')
+      .eq('domain', DOMAIN)
+      .order('published_at', { ascending: false });
 
-  // 2. Carregar posts do Supabase (network_posts)
-  if (supabase && networkId && networkId !== '0') {
-    const cacheKey = `all:${networkId}`;
-    try {
-      const dbPosts = await fetchDbPostsWithRetry(networkId, 3);
-      POSTS_CACHE.set(cacheKey, { at: Date.now(), posts: dbPosts });
-
-      if (dbPosts) {
-        dbPosts.forEach((p: any) => {
-          if (!posts.find(local => local.slug === p.slug)) {
-            posts.push({
-              slug: p.slug,
-              title: p.title,
-              description: p.meta_description || '',
-              pubDate: p.published_at,
-              heroImage: p.featured_image || '',
-              category: 'Geral',
-              author: 'Equipe',
-              draft: false,
-              tags: [],
-            });
-          }
-        });
-      }
-    } catch (e) {
-      console.error('[8links Supabase Error]', e);
-      const cached = POSTS_CACHE.get(cacheKey);
-      if (cached && (Date.now() - cached.at) <= CACHE_TTL_MS) {
-        cached.posts.forEach((p: any) => {
-          if (!posts.find(local => local.slug === p.slug)) {
-            posts.push({
-              slug: p.slug,
-              title: p.title,
-              description: p.meta_description || '',
-              pubDate: p.published_at,
-              heroImage: p.featured_image || '',
-              category: 'Geral',
-              author: 'Equipe',
-              draft: false,
-              tags: [],
-            });
-          }
-        });
-      }
+    if (!error && data && data.length > 0) {
+      return data as Post[];
     }
+
+    return [];
+  } catch (err) {
+    return [];
   }
-
-  return posts.sort((a, b) =>
-    new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime()
-  );
 }
 
-export async function getPost(slug: string): Promise<Post | null> {
-  // 1. Tentar local
+export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    const localPath = resolve(BLOG_DIR, `${slug}.md`);
-    if (existsSync(localPath)) {
-      const raw = readFileSync(localPath, 'utf-8');
-      const { meta, body } = parseFrontmatter(raw);
-      return {
-        slug,
-        title: meta.title || slug,
-        description: meta.description || '',
-        pubDate: meta.pubDate || '',
-        heroImage: meta.heroImage || '',
-        category: meta.category || 'Geral',
-        author: meta.author || '',
-        draft: meta.draft === true,
-        tags: [],
-        body,
-      };
-    }
-  } catch { /* pula para o banco */ }
+    const { data, error } = await supabase
+      .from('network_posts')
+      .select('*')
+      .eq('domain', DOMAIN)
+      .eq('slug', slug)
+      .maybeSingle();
 
-  // 2. Tentar Supabase (network_posts)
-  if (supabase && networkId && networkId !== '0') {
-    const cacheKey = `all:${networkId}`;
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 7000);
-      const { data: p, error } = await supabase
-        .from('network_posts')
-        .select('*')
-        .eq('network_site_id', parseInt(networkId) || 0)
-        .eq('slug', slug)
-        .abortSignal(ctrl.signal)
-        .single();
-      clearTimeout(timeout);
-      if (error) throw error;
-
-      if (p) {
-        return {
-          slug: p.slug,
-          title: p.title,
-          description: p.meta_description || '',
-          pubDate: p.published_at,
-          heroImage: p.featured_image || '',
-          category: 'Geral',
-          author: 'Equipe',
-          draft: false,
-          tags: [],
-          body: p.content || '',
-        };
-      }
-    } catch (e) {
-      const cached = POSTS_CACHE.get(cacheKey);
-      if (cached && (Date.now() - cached.at) <= CACHE_TTL_MS) {
-        const p = cached.posts.find((x: any) => x.slug === slug);
-        if (p) {
-          return {
-            slug: p.slug,
-            title: p.title,
-            description: p.meta_description || '',
-            pubDate: p.published_at,
-            heroImage: p.featured_image || '',
-            category: 'Geral',
-            author: 'Equipe',
-            draft: false,
-            tags: [],
-            body: p.content || '',
-          };
-        }
-      }
-      return null;
+    if (!error && data) {
+      return data as Post;
     }
+
+    const { data: fallbackData } = await supabase
+      .from('network_posts')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (fallbackData) {
+      return fallbackData as Post;
+    }
+
+    return null;
+  } catch (err) {
+    return null;
   }
-
-  return null;
 }
