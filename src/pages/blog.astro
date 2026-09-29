@@ -4,9 +4,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../sections/Header.astro';
 import Footer from '../sections/Footer.astro';
 
-const posts = await getPosts();
+const PER_PAGE = 6;
+// Traz o acervo uma vez e pagina em memoria: ORDER BY/range no banco
+// estoura o statement_timeout do Postgres.
+const all = await getPosts(100);
+const totalPages = Math.max(1, Math.ceil(all.length / PER_PAGE));
+const current = Math.min(Math.max(1, Number(Astro.url.searchParams.get('page')) || 1), totalPages);
+const posts = all.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+const pageUrl = (n: number) => (n === 1 ? '/blog' : `/blog?page=${n}`);
+
+const prev = current > 1 ? current - 1 : null;
+const next = current < totalPages ? current + 1 : null;
 ---
-<BaseLayout title="Blog" description="Todos os artigos e publicações do blog.">
+<BaseLayout
+  title={current > 1 ? `Blog — Página ${current}` : 'Blog'}
+  description="Todos os artigos e publicações do blog."
+>
   <Header />
 
   <section class="py-16 bg-gray-50 min-h-screen">
@@ -48,10 +61,47 @@ const posts = await getPosts();
         ))}
       </div>
 
-      {posts.length === 0 && (
+      {all.length === 0 && (
         <div class="text-center py-20 text-gray-400">
           <p class="text-xl">Nenhum artigo publicado ainda.</p>
         </div>
+      )}
+
+      <!-- Paginacao -->
+      {totalPages > 1 && (
+        <nav class="flex items-center justify-center gap-2 mt-12" aria-label="Paginacao dos artigos">
+          {prev && (
+            <a
+              href={pageUrl(prev)}
+              class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-dark hover:border-primary hover:text-primary transition-colors"
+            >
+              ← Anterior
+            </a>
+          )}
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+            <a
+              href={pageUrl(n)}
+              aria-current={n === current ? 'page' : undefined}
+              class={`min-w-10 px-3 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                n === current
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white border-gray-200 text-dark hover:border-primary hover:text-primary'
+              }`}
+            >
+              {n}
+            </a>
+          ))}
+
+          {next && (
+            <a
+              href={pageUrl(next)}
+              class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-dark hover:border-primary hover:text-primary transition-colors"
+            >
+              Proxima →
+            </a>
+          )}
+        </nav>
       )}
     </div>
   </section>

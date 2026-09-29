@@ -4,7 +4,7 @@ import { getPosts } from '../lib/posts';
 interface Props { title: string; limit: number; btnText: string; btnLink: string; }
 const { title, limit, btnText, btnLink } = Astro.props;
 
-const posts = (await getPosts()).slice(0, limit);
+const posts = await getPosts(limit);
 ---
 <section class="py-24 bg-white relative">
   <div class="max-w-6xl mx-auto px-4">

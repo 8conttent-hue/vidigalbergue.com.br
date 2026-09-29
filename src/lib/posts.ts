@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabase';
+import { supabase } from './supabase';
 
 export interface Post {
   id: string;
@@ -55,16 +55,62 @@ export function formatContentToHtml(rawContent: string): string {
 
 const DOMAIN = 'vidigalbergue.com.br';
 
-export async function getPosts(): Promise<Post[]> {
+// limit evita trazer o acervo inteiro: o ORDER BY no banco estoura o
+// statement_timeout do Postgres, e a ordenacao e feita em memoria.
+// O banco nao tem indice em (domain, published_at) e satura com facilidade,
+// entao a consulta tem timeout curto e o resultado fica em cache no edge.
+const CACHE_TTL_SECONDS = 300;
+const QUERY_TIMEOUT_MS = 4000;
+
+interface CacheStorageLike {
+  match: (req: Request) => Promise<Response | undefined>;
+  put: (req: Request, res: Response) => Promise<void>;
+}
+
+function getEdgeCache(): CacheStorageLike | undefined {
+  return (globalThis as unknown as { caches?: { default: CacheStorageLike } }).caches?.default;
+}
+
+export async function getPosts(limit = 100): Promise<Post[]> {
+  const cache = getEdgeCache();
+  const cacheKey = new Request('https://cache.local/posts?domain=' + DOMAIN + '&limit=' + limit);
+
+  if (cache) {
+    const hit = await cache.match(cacheKey);
+    if (hit) return (await hit.json()) as Post[];
+  }
+
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
+
     const { data, error } = await supabase
       .from('network_posts')
-      .select('*')
+      .select('id,slug,title,meta_description,featured_image,published_at,domain')
       .eq('domain', DOMAIN)
-      .order('published_at', { ascending: false });
+      .limit(limit)
+      .abortSignal(controller.signal);
+
+    clearTimeout(timer);
 
     if (!error && data && data.length > 0) {
-      return data as Post[];
+      const posts = (data as Post[]).sort(
+        (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+      );
+
+      if (cache) {
+        await cache.put(
+          cacheKey,
+          new Response(JSON.stringify(posts), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'public, max-age=' + CACHE_TTL_SECONDS,
+            },
+          })
+        );
+      }
+
+      return posts;
     }
 
     return [];
