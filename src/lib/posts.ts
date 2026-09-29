@@ -60,7 +60,7 @@ const DOMAIN = 'vidigalbergue.com.br';
 // O banco nao tem indice em (domain, published_at) e satura com facilidade,
 // entao a consulta tem timeout curto e o resultado fica em cache no edge.
 const CACHE_TTL_SECONDS = 300;
-const QUERY_TIMEOUT_MS = 4000;
+const QUERY_TIMEOUT_MS = 9000;
 
 interface CacheStorageLike {
   match: (req: Request) => Promise<Response | undefined>;
@@ -93,27 +93,28 @@ export async function getPosts(limit = 100): Promise<Post[]> {
 
     clearTimeout(timer);
 
-    if (!error && data && data.length > 0) {
-      const posts = (data as Post[]).sort(
-        (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+    const posts =
+      !error && data && data.length > 0
+        ? (data as Post[]).sort(
+            (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+          )
+        : [];
+
+    if (cache) {
+      await cache.put(
+        cacheKey,
+        new Response(JSON.stringify(posts), {
+          headers: {
+            'Content-Type': 'application/json',
+            // Resultado vazio (banco lento) dura menos, para nao servir
+            // pagina sem artigo por muito tempo.
+            'Cache-Control': 'public, max-age=' + (posts.length > 0 ? CACHE_TTL_SECONDS : 30),
+          },
+        })
       );
-
-      if (cache) {
-        await cache.put(
-          cacheKey,
-          new Response(JSON.stringify(posts), {
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'public, max-age=' + CACHE_TTL_SECONDS,
-            },
-          })
-        );
-      }
-
-      return posts;
     }
 
-    return [];
+    return posts;
   } catch (err) {
     return [];
   }
